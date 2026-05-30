@@ -22,7 +22,17 @@ app.prepare().then(() => {
   })
 
   const wss = new WebSocketServer({ server, path: '/ws' })
-  wss.on('connection', (ws) => wsManager.registerBrowserClient(ws))
+  wss.on('connection', (ws) => {
+    wsManager.registerBrowserClient(ws)
+    ws.on('message', (data: Buffer) => {
+      try {
+        const msg = JSON.parse(data.toString()) as { action: string; ticker?: string }
+        if (msg.action === 'subscribe' && msg.ticker) {
+          wsManager.subscribeTicker(msg.ticker)
+        }
+      } catch {}
+    })
+  })
 
   wsManager.connect()
 
