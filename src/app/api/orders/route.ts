@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { alpaca } from '@/lib/alpaca/client'
 import { prisma } from '@/lib/db'
+import { getCurrentKrwRate } from '@/lib/exchange-rate'
 
 export async function GET(req: NextRequest) {
   try {
@@ -59,19 +60,41 @@ export async function POST(req: NextRequest) {
       body.side === 'sell' &&
       body.lotId &&
       order.status === 'filled' &&
-      order.filled_qty
+      order.filled_qty &&
+      order.filled_avg_price &&
+      order.filled_at
     ) {
       const filledQty = parseFloat(order.filled_qty)
+      const salePrice = parseFloat(order.filled_avg_price)
       const lot = await prisma.lot.findUnique({ where: { id: body.lotId } })
       if (lot) {
         const newSold = lot.soldQuantity + filledQty
-        await prisma.lot.update({
-          where: { id: body.lotId },
-          data: {
-            soldQuantity: newSold,
-            status: newSold >= lot.quantity ? 'fully_sold' : 'active',
-          },
-        })
+        const saleRate = await getCurrentKrwRate()
+        const gainKrw = (salePrice - lot.purchasePrice) * filledQty * saleRate
+
+        await Promise.all([
+          prisma.lot.update({
+            where: { id: body.lotId },
+            data: {
+              soldQuantity: newSold,
+              status: newSold >= lot.quantity ? 'fully_sold' : 'active',
+            },
+          }),
+          prisma.taxRecord.create({
+            data: {
+              lotId: body.lotId,
+              ticker: lot.ticker,
+              acquireDate: lot.purchaseDate,
+              acquirePrice: lot.purchasePrice,
+              acquireRate: saleRate,
+              saleDate: new Date(order.filled_at),
+              salePrice,
+              saleRate,
+              quantity: filledQty,
+              gainKrw,
+            },
+          }),
+        ])
       }
     }
 

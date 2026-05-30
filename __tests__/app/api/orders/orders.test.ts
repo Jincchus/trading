@@ -15,7 +15,14 @@ jest.mock('@/lib/db', () => ({
       findUnique: jest.fn(),
       update: jest.fn().mockResolvedValue({}),
     },
+    taxRecord: {
+      create: jest.fn().mockResolvedValue({}),
+    },
   },
+}))
+
+jest.mock('@/lib/exchange-rate', () => ({
+  getCurrentKrwRate: jest.fn().mockResolvedValue(1300),
 }))
 
 function makePostReq(body: object) {
@@ -68,12 +75,18 @@ test('POST updates Lot soldQuantity when sell fills', async () => {
     type: 'market', extended_hours: false,
   })
   const { prisma } = jest.requireMock('@/lib/db')
-  prisma.lot.findUnique.mockResolvedValue({ id: 'lot-1', quantity: 10, soldQuantity: 0, status: 'active' })
+  prisma.lot.findUnique.mockResolvedValue({ id: 'lot-1', ticker: 'AAPL', quantity: 10, soldQuantity: 0, status: 'active', purchasePrice: 150, purchaseDate: new Date('2024-01-01') })
   await POST(makePostReq({ ticker: 'AAPL', side: 'sell', type: 'market', qty: 3, lotId: 'lot-1' }))
   expect(prisma.lot.update).toHaveBeenCalledWith(expect.objectContaining({
     where: { id: 'lot-1' },
     data: expect.objectContaining({ soldQuantity: 3, status: 'active' }),
   }))
+  const { prisma: p } = jest.requireMock('@/lib/db')
+  expect(p.taxRecord.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ ticker: 'AAPL', quantity: 3, lotId: 'lot-1' }),
+    })
+  )
 })
 
 test('POST returns 502 on Alpaca error', async () => {
