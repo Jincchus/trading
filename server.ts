@@ -4,6 +4,9 @@ import next from 'next'
 import { WebSocketServer } from 'ws'
 import { buildWsManager } from './src/lib/alpaca/ws-server'
 import { env } from './src/lib/env'
+import { prisma } from './src/lib/db'
+import { alpaca } from './src/lib/alpaca/client'
+import { shouldRun } from './src/lib/recurring'
 
 const port = parseInt(env.PORT, 10)
 const dev = process.env.NODE_ENV !== 'production'
@@ -35,6 +38,32 @@ app.prepare().then(() => {
   })
 
   wsManager.connect()
+
+  setInterval(async () => {
+    try {
+      const now = new Date()
+      const actives = await prisma.recurringInvestment.findMany({ where: { active: true } })
+      for (const ri of actives) {
+        if (!shouldRun(ri.frequency, ri.lastRun, now)) continue
+        try {
+          await alpaca.placeOrder({
+            symbol: ri.ticker,
+            notional: String(ri.amount),
+            side: 'buy',
+            type: 'market',
+            time_in_force: 'day',
+          })
+          await prisma.recurringInvestment.update({
+            where: { id: ri.id },
+            data: { lastRun: now },
+          })
+          console.log(`[Recurring] $${ri.amount} → ${ri.ticker}`)
+        } catch (e) {
+          console.error(`[Recurring] Failed for ${ri.ticker}:`, e)
+        }
+      }
+    } catch {}
+  }, 60 * 1000)
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`)
