@@ -11,7 +11,8 @@ export async function GET(
   try {
     const { ticker } = await params
     const { searchParams } = req.nextUrl
-    const timeframe = (searchParams.get('timeframe') ?? '1Day') as Timeframe
+    const DEFAULT_TIMEFRAME = '1Day' as const satisfies Timeframe
+    const timeframe = (searchParams.get('timeframe') ?? DEFAULT_TIMEFRAME) as Timeframe
 
     if (!VALID_TIMEFRAMES.includes(timeframe)) {
       return NextResponse.json({ error: 'Invalid timeframe' }, { status: 400 })
@@ -19,7 +20,10 @@ export async function GET(
 
     const start = searchParams.get('start') ?? undefined
     const end = searchParams.get('end') ?? undefined
-    const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : undefined
+    const limitStr = searchParams.get('limit')
+    const limit = limitStr !== null && !isNaN(Number(limitStr)) && Number(limitStr) > 0
+      ? Number(limitStr)
+      : undefined
 
     const data = await alpaca.getBars(ticker.toUpperCase(), { timeframe, start, end, limit })
     return NextResponse.json(data)

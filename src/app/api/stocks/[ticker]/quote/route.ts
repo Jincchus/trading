@@ -7,6 +7,9 @@ export async function GET(
 ) {
   try {
     const { ticker } = await params
+    if (!ticker || ticker.trim().length === 0) {
+      return NextResponse.json({ error: 'Ticker is required' }, { status: 400 })
+    }
     const data = await alpaca.getLatestQuote(ticker.toUpperCase())
     return NextResponse.json(data)
   } catch (err) {
