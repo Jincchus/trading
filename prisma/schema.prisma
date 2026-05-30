@@ -104,3 +104,8 @@ model RecurringInvestment {
   lastRun   DateTime?
   createdAt DateTime  @default(now())
 }
+
+model Watchlist {
+  ticker  String   @id
+  addedAt DateTime @default(now())
+}
