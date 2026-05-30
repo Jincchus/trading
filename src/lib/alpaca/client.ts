@@ -27,10 +27,34 @@ export interface AlpacaOrder {
   extended_hours: boolean
 }
 
+export interface AlpacaBar {
+  t: string
+  o: number
+  h: number
+  l: number
+  c: number
+  v: number
+}
+
+export interface AlpacaQuote {
+  t: string
+  ap: number
+  as: number
+  bp: number
+  bs: number
+}
+
+export interface AlpacaTrade {
+  t: string
+  p: number
+  s: number
+}
+
 interface ClientConfig {
   ALPACA_API_KEY: string
   ALPACA_API_SECRET: string
   ALPACA_BASE_URL: string
+  ALPACA_DATA_URL: string
 }
 
 export function buildAlpacaClient(config: ClientConfig) {
@@ -46,6 +70,25 @@ export function buildAlpacaClient(config: ClientConfig) {
     })
     if (!res.ok) {
       let msg = `Alpaca API error: ${res.status}`
+      try {
+        const err = await res.json()
+        if (err.message) msg += ` — ${err.message}`
+      } catch {}
+      throw new Error(msg)
+    }
+    return res.json()
+  }
+
+  async function dataReq(path: string, params?: Record<string, string>) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+    const res = await fetch(`${config.ALPACA_DATA_URL}${path}${qs}`, {
+      headers: {
+        'APCA-API-KEY-ID': config.ALPACA_API_KEY,
+        'APCA-API-SECRET-KEY': config.ALPACA_API_SECRET,
+      },
+    })
+    if (!res.ok) {
+      let msg = `Alpaca Data API error: ${res.status}`
       try {
         const err = await res.json()
         if (err.message) msg += ` — ${err.message}`
@@ -80,6 +123,27 @@ export function buildAlpacaClient(config: ClientConfig) {
       req('/v2/orders', { method: 'POST', body: JSON.stringify(order) }),
     cancelOrder: (orderId: string): Promise<void> =>
       req(`/v2/orders/${orderId}`, { method: 'DELETE' }),
+    getBars: (
+      symbol: string,
+      params: {
+        timeframe: '1Min' | '5Min' | '15Min' | '1Hour' | '1Day' | '1Week' | '1Month'
+        start?: string
+        end?: string
+        limit?: number
+        feed?: 'iex' | 'sip'
+      }
+    ): Promise<{ bars: AlpacaBar[] }> =>
+      dataReq(`/v2/stocks/${symbol}/bars`, {
+        timeframe: params.timeframe,
+        ...(params.start && { start: params.start }),
+        ...(params.end && { end: params.end }),
+        ...(params.limit && { limit: String(params.limit) }),
+        feed: params.feed ?? 'iex',
+      }),
+    getLatestQuote: (symbol: string): Promise<{ quote: AlpacaQuote }> =>
+      dataReq(`/v2/stocks/${symbol}/quotes/latest`, { feed: 'iex' }),
+    getLatestTrade: (symbol: string): Promise<{ trade: AlpacaTrade }> =>
+      dataReq(`/v2/stocks/${symbol}/trades/latest`, { feed: 'iex' }),
   }
 }
 

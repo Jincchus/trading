@@ -39,3 +39,23 @@ test('throws on API error', async () => {
   const client = buildAlpacaClient(cfg)
   await expect(client.getAccount()).rejects.toThrow('Alpaca API error: 401')
 })
+
+describe('data API methods', () => {
+  test('getBars calls data URL with correct params', async () => {
+    mockFetch({ bars: [{ t: '2024-01-15T09:30:00Z', o: 150, h: 155, l: 148, c: 152, v: 1000000 }] })
+    const client = buildAlpacaClient({ ...cfg, ALPACA_DATA_URL: 'https://data.alpaca.markets' })
+    const result = await client.getBars('AAPL', { timeframe: '1Day' })
+    expect(result.bars[0].c).toBe(152)
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('data.alpaca.markets/v2/stocks/AAPL/bars'),
+      expect.any(Object)
+    )
+  })
+
+  test('getLatestQuote returns quote data', async () => {
+    mockFetch({ quote: { t: '2024-01-15T09:30:00Z', ap: 150.5, as: 100, bp: 150.0, bs: 200 } })
+    const client = buildAlpacaClient({ ...cfg, ALPACA_DATA_URL: 'https://data.alpaca.markets' })
+    const result = await client.getLatestQuote('AAPL')
+    expect(result.quote.ap).toBe(150.5)
+  })
+})
