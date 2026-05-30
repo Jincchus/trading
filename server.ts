@@ -29,4 +29,20 @@ app.prepare().then(() => {
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`)
   })
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`> Port ${port} is already in use`)
+    } else {
+      console.error('> Server error:', err.message)
+    }
+    process.exit(1)
+  })
+
+  const shutdown = () => {
+    wsManager.disconnect()
+    server.close(() => process.exit(0))
+  }
+  process.on('SIGTERM', shutdown)
+  process.on('SIGINT', shutdown)
 })
