@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Lot {
+  id            String        @id @default(cuid())
+  ticker        String
+  quantity      Float
+  purchasePrice Float
+  purchaseDate  DateTime
+  alpacaOrderId String        @unique
+  soldQuantity  Float         @default(0)
+  status        String        @default("active")
+  strategyId    String?
+  strategy      Strategy?     @relation(fields: [strategyId], references: [id])
+  taxRecords    TaxRecord[]
+  createdAt     DateTime      @default(now())
+}
+
+model Category {
+  id     String          @id @default(cuid())
+  name   String          @unique
+  color  String          @default("#3b82f6")
+  stocks StockCategory[]
+}
+
+model StockCategory {
+  ticker     String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([ticker, categoryId])
+}
+
+model Strategy {
+  id    String         @id @default(cuid())
+  name  String
+  rules StrategyRule[]
+  lots  Lot[]
+}
+
+model StrategyRule {
+  id         String   @id @default(cuid())
+  threshold  Float
+  sellPct    Float
+  strategyId String
+  strategy   Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+}
+
+model FxRecord {
+  id           String   @id @default(cuid())
+  date         DateTime
+  krwAmount    Float
+  exchangeRate Float
+  usdAmount    Float
+  source       String
+  createdAt    DateTime @default(now())
+}
+
+model TaxRecord {
+  id           String   @id @default(cuid())
+  lotId        String
+  lot          Lot      @relation(fields: [lotId], references: [id])
+  ticker       String
+  acquireDate  DateTime
+  acquirePrice Float
+  acquireRate  Float
+  saleDate     DateTime
+  salePrice    Float
+  saleRate     Float
+  quantity     Float
+  gainKrw      Float
+  createdAt    DateTime @default(now())
+}
+
+model Alert {
+  id          String         @id @default(cuid())
+  ticker      String
+  targetPrice Float
+  direction   String
+  active      Boolean        @default(true)
+  history     AlertHistory[]
+  createdAt   DateTime       @default(now())
+}
+
+model AlertHistory {
+  id          String   @id @default(cuid())
+  alertId     String
+  alert       Alert    @relation(fields: [alertId], references: [id])
+  triggeredAt DateTime @default(now())
+  price       Float
+}
