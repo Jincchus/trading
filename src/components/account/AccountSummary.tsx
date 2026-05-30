@@ -9,7 +9,10 @@ export default function AccountSummary() {
 
   useEffect(() => {
     fetch('/api/account')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then(setAccount)
       .catch(() => setError(true))
   }, [])
