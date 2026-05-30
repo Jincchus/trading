@@ -9,6 +9,9 @@ const schema = z.object({
   ALPACA_DATA_URL: z.string().url().default('https://data.alpaca.markets'),
   FMP_API_KEY: z.string().min(1),
   EXCHANGE_RATE_API_KEY: z.string().min(1),
+  VAPID_PUBLIC_KEY: z.string().min(1),
+  VAPID_PRIVATE_KEY: z.string().min(1),
+  VAPID_EMAIL: z.string().default('admin@example.com'),
   PORT: z.string().default('3000'),
 })
 
