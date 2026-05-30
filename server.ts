@@ -8,6 +8,7 @@ import { prisma } from './src/lib/db'
 import { alpaca } from './src/lib/alpaca/client'
 import { shouldRun } from './src/lib/recurring'
 import { checkStrategies } from './src/lib/strategy-monitor'
+import { checkAlerts } from './src/lib/alert-monitor'
 
 const port = parseInt(env.PORT, 10)
 const dev = process.env.NODE_ENV !== 'production'
@@ -73,6 +74,10 @@ app.prepare().then(() => {
       console.error('[Strategy Monitor] Error:', e)
     }
   }, 30 * 1000)
+
+  setInterval(async () => {
+    try { await checkAlerts() } catch (e) { console.error('[Alert Monitor]', e) }
+  }, 60 * 1000)
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`)

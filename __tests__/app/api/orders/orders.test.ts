@@ -28,6 +28,10 @@ jest.mock('@/lib/exchange-rate', () => ({
   getCurrentKrwRate: jest.fn().mockResolvedValue(1300),
 }))
 
+jest.mock('@/lib/push', () => ({
+  sendPushNotification: jest.fn().mockResolvedValue(undefined),
+}))
+
 function makePostReq(body: object) {
   return new NextRequest('http://localhost/api/orders', {
     method: 'POST',

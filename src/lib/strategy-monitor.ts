@@ -1,5 +1,6 @@
 import { prisma } from './db'
 import { alpaca } from './alpaca/client'
+import { sendPushNotification } from './push'
 
 export async function checkStrategies(): Promise<void> {
   const lots = await prisma.lot.findMany({
@@ -47,6 +48,10 @@ export async function checkStrategies(): Promise<void> {
         if (order.status === 'filled' && order.filled_qty) {
           currentSold += parseFloat(order.filled_qty)
           console.log(`[Strategy] Sold ${order.filled_qty} ${lot.ticker} (+${rule.threshold}% rule)`)
+          await sendPushNotification(
+            `[전략] ${lot.ticker} 자동 매도`,
+            `${lot.ticker} ${order.filled_qty}주를 $${order.filled_avg_price ?? '?'}에 자동 매도 (+${rule.threshold}% 룰)`
+          )
         }
       } catch (e) {
         console.error(`[Strategy] Failed for ${lot.ticker}:`, e)

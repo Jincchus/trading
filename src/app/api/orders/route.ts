@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { alpaca } from '@/lib/alpaca/client'
 import { prisma } from '@/lib/db'
 import { getCurrentKrwRate } from '@/lib/exchange-rate'
+import { sendPushNotification } from '@/lib/push'
 
 export async function GET(req: NextRequest) {
   try {
@@ -106,6 +107,14 @@ export async function POST(req: NextRequest) {
           }),
         ])
       }
+    }
+
+    if (order.status === 'filled') {
+      const side = body.side === 'buy' ? '매수' : '매도'
+      await sendPushNotification(
+        `${order.symbol} 주문 체결`,
+        `${order.symbol} ${order.filled_qty}주 ${side} 체결 @ $${order.filled_avg_price ?? '?'}`
+      ).catch(() => {})
     }
 
     return NextResponse.json({ order }, { status: 201 })
