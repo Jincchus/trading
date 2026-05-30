@@ -18,8 +18,9 @@ export async function GET() {
 
     const categoryNamesByTicker = new Map<string, string[]>()
     for (const sc of stockCategories) {
-      if (!categoryNamesByTicker.has(sc.ticker)) categoryNamesByTicker.set(sc.ticker, [])
-      categoryNamesByTicker.get(sc.ticker)!.push(sc.category.name)
+      const t = sc.ticker.toUpperCase()
+      if (!categoryNamesByTicker.has(t)) categoryNamesByTicker.set(t, [])
+      categoryNamesByTicker.get(t)!.push(sc.category.name)
     }
 
     const positions = alpacaPositions.map((pos) => {
@@ -54,7 +55,7 @@ export async function GET() {
         unrealizedPL: parseFloat(pos.unrealized_pl),
         unrealizedPLPct: parseFloat(pos.unrealized_plpc) * 100,
         lots,
-        categories: categoryNamesByTicker.get(pos.symbol) ?? [],
+        categories: categoryNamesByTicker.get(pos.symbol.toUpperCase()) ?? [],
       }
     })
 
