@@ -1,0 +1,70 @@
+<h2>아키텍처 접근 방식 선택</h2>
+<p class="subtitle">기술 스택 + 구조 — 하나를 골라주세요</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Next.js Fullstack (추천)</h3>
+      <p><strong>Frontend:</strong> Next.js (React) + TypeScript<br>
+      <strong>Backend:</strong> Next.js API Routes (BFF)<br>
+      <strong>실시간:</strong> WebSocket (brokerage 직연결)<br>
+      <strong>봇 연동:</strong> Bot가 REST로 상태 푸시 → API Route로 수신</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>장점</h4><ul>
+          <li>하나의 프로젝트로 프론트+백 관리</li>
+          <li>API 키 서버에서 안전하게 보관</li>
+          <li>TypeScript 풀스택</li>
+          <li>배포 간단 (Vercel 1줄)</li>
+        </ul></div>
+        <div class="cons"><h4>단점</h4><ul>
+          <li>WebSocket 유지에 서버리스 한계 (셀프호스팅 권장)</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>React (Vite) + FastAPI</h3>
+      <p><strong>Frontend:</strong> React + TypeScript (Vite)<br>
+      <strong>Backend:</strong> Python FastAPI<br>
+      <strong>실시간:</strong> FastAPI WebSocket<br>
+      <strong>봇 연동:</strong> 같은 Python 생태계라 봇 코드 직접 import 가능</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>장점</h4><ul>
+          <li>봇(Python)과 백엔드가 같은 언어 → 코드 공유 쉬움</li>
+          <li>FastAPI 성능 우수, WebSocket 네이티브 지원</li>
+          <li>나중에 봇 기능 통합하기 편함</li>
+        </ul></div>
+        <div class="cons"><h4>단점</h4><ul>
+          <li>프론트/백 두 개 프로젝트 관리</li>
+          <li>배포 설정 복잡도 증가</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>React (Vite) + Node.js/Express</h3>
+      <p><strong>Frontend:</strong> React + TypeScript (Vite)<br>
+      <strong>Backend:</strong> Node.js + Express + Socket.io<br>
+      <strong>실시간:</strong> Socket.io (안정적인 WebSocket 래퍼)<br>
+      <strong>봇 연동:</strong> Bot → HTTP/WS → Express → Frontend</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>장점</h4><ul>
+          <li>Socket.io로 실시간 구현이 가장 편함</li>
+          <li>JavaScript 풀스택</li>
+          <li>레퍼런스 많음</li>
+        </ul></div>
+        <div class="cons"><h4>단점</h4><ul>
+          <li>프론트/백 두 개 프로젝트 관리</li>
+          <li>봇(Python)과 언어 분리</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

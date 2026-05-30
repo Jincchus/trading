@@ -1,0 +1,6 @@
+process.env.ALPACA_API_KEY = 'test-key'
+process.env.ALPACA_API_SECRET = 'test-secret'
+process.env.ALPACA_BASE_URL = 'https://paper-api.alpaca.markets'
+process.env.ALPACA_WS_URL = 'wss://stream.data.alpaca.markets/v2/iex'
+process.env.FMP_API_KEY = 'test-fmp-key'
+process.env.EXCHANGE_RATE_API_KEY = 'test-er-key'
