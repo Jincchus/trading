@@ -18,6 +18,9 @@ jest.mock('@/lib/db', () => ({
     taxRecord: {
       create: jest.fn().mockResolvedValue({}),
     },
+    fxRecord: {
+      findFirst: jest.fn().mockResolvedValue({ id: 'fx-1', exchangeRate: 1300 }),
+    },
   },
 }))
 

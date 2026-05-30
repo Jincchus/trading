@@ -70,6 +70,16 @@ export async function POST(req: NextRequest) {
       if (lot) {
         const newSold = lot.soldQuantity + filledQty
         const saleRate = await getCurrentKrwRate()
+
+        let acquireRate = saleRate
+        const closestFxRecord = await prisma.fxRecord.findFirst({
+          where: { date: { lte: lot.purchaseDate } },
+          orderBy: { date: 'desc' },
+        })
+        if (closestFxRecord) {
+          acquireRate = closestFxRecord.exchangeRate
+        }
+
         const gainKrw = (salePrice - lot.purchasePrice) * filledQty * saleRate
 
         await Promise.all([
@@ -86,7 +96,7 @@ export async function POST(req: NextRequest) {
               ticker: lot.ticker,
               acquireDate: lot.purchaseDate,
               acquirePrice: lot.purchasePrice,
-              acquireRate: saleRate,
+              acquireRate: acquireRate,
               saleDate: new Date(order.filled_at),
               salePrice,
               saleRate,
