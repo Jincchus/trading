@@ -44,7 +44,14 @@ export function buildAlpacaClient(config: ClientConfig) {
         ...options?.headers,
       },
     })
-    if (!res.ok) throw new Error(`Alpaca API error: ${res.status}`)
+    if (!res.ok) {
+      let msg = `Alpaca API error: ${res.status}`
+      try {
+        const err = await res.json()
+        if (err.message) msg += ` — ${err.message}`
+      } catch {}
+      throw new Error(msg)
+    }
     return res.json()
   }
 
@@ -52,7 +59,11 @@ export function buildAlpacaClient(config: ClientConfig) {
     getAccount: (): Promise<AlpacaAccount> => req('/v2/account'),
     getPositions: (): Promise<AlpacaPosition[]> => req('/v2/positions'),
     getOrders: (params?: { status?: string; limit?: number }): Promise<AlpacaOrder[]> => {
-      const qs = new URLSearchParams(params as Record<string, string>).toString()
+      const qs = new URLSearchParams(
+        Object.entries(params || {})
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)])
+      ).toString()
       return req(`/v2/orders${qs ? `?${qs}` : ''}`)
     },
     placeOrder: (order: {
