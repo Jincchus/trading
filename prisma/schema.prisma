@@ -94,3 +94,13 @@ model AlertHistory {
   triggeredAt DateTime @default(now())
   price       Float
 }
+
+model RecurringInvestment {
+  id        String    @id @default(cuid())
+  ticker    String
+  amount    Float
+  frequency String
+  active    Boolean   @default(true)
+  lastRun   DateTime?
+  createdAt DateTime  @default(now())
+}
