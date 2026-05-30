@@ -7,6 +7,7 @@ import { env } from './src/lib/env'
 import { prisma } from './src/lib/db'
 import { alpaca } from './src/lib/alpaca/client'
 import { shouldRun } from './src/lib/recurring'
+import { checkStrategies } from './src/lib/strategy-monitor'
 
 const port = parseInt(env.PORT, 10)
 const dev = process.env.NODE_ENV !== 'production'
@@ -64,6 +65,14 @@ app.prepare().then(() => {
       }
     } catch {}
   }, 60 * 1000)
+
+  setInterval(async () => {
+    try {
+      await checkStrategies()
+    } catch (e) {
+      console.error('[Strategy Monitor] Error:', e)
+    }
+  }, 30 * 1000)
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`)
