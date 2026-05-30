@@ -8,6 +8,9 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await req.json() as { amount?: number; frequency?: string; active?: boolean }
+    if (body.frequency !== undefined && !['daily', 'weekly', 'monthly'].includes(body.frequency)) {
+      return NextResponse.json({ error: 'frequency must be daily, weekly, or monthly' }, { status: 400 })
+    }
     const recurring = await prisma.recurringInvestment.update({
       where: { id },
       data: {
