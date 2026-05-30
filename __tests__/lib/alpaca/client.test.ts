@@ -58,4 +58,15 @@ describe('data API methods', () => {
     const result = await client.getLatestQuote('AAPL')
     expect(result.quote.ap).toBe(150.5)
   })
+
+  test('getLatestTrade returns trade data', async () => {
+    mockFetch({ trade: { t: '2024-01-15T09:30:00Z', p: 152.5, s: 500 } })
+    const client = buildAlpacaClient({ ...cfg, ALPACA_DATA_URL: 'https://data.alpaca.markets' })
+    const result = await client.getLatestTrade('AAPL')
+    expect(result.trade.p).toBe(152.5)
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('data.alpaca.markets/v2/stocks/AAPL/trades/latest'),
+      expect.any(Object)
+    )
+  })
 })
