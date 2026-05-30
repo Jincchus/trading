@@ -50,6 +50,15 @@ export interface AlpacaTrade {
   s: number
 }
 
+export interface AlpacaActivity {
+  id: string
+  activity_type: string
+  date: string
+  net_amount: string
+  symbol: string
+  description: string
+}
+
 interface ClientConfig {
   ALPACA_API_KEY: string
   ALPACA_API_SECRET: string
@@ -144,6 +153,14 @@ export function buildAlpacaClient(config: ClientConfig) {
       dataReq(`/v2/stocks/${symbol}/quotes/latest`, { feed: 'iex' }),
     getLatestTrade: (symbol: string): Promise<{ trade: AlpacaTrade }> =>
       dataReq(`/v2/stocks/${symbol}/trades/latest`, { feed: 'iex' }),
+    getActivities: (params?: { activity_type?: string }): Promise<AlpacaActivity[]> => {
+      const qs = new URLSearchParams(
+        Object.entries(params || {})
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)])
+      ).toString()
+      return req(`/v2/account/activities${qs ? `?${qs}` : ''}`)
+    },
   }
 }
 
