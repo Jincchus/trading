@@ -64,7 +64,7 @@ model FxRecord {
 model TaxRecord {
   id           String   @id @default(cuid())
   lotId        String
-  lot          Lot      @relation(fields: [lotId], references: [id])
+  lot          Lot      @relation(fields: [lotId], references: [id], onDelete: Restrict)
   ticker       String
   acquireDate  DateTime
   acquirePrice Float
