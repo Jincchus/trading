@@ -101,7 +101,7 @@ export function buildAlpacaClient(config: ClientConfig) {
   return {
     getAccount: (): Promise<AlpacaAccount> => req('/v2/account'),
     getPositions: (): Promise<AlpacaPosition[]> => req('/v2/positions'),
-    getOrders: (params?: { status?: string; limit?: number }): Promise<AlpacaOrder[]> => {
+    getOrders: (params?: { status?: string; limit?: number; side?: 'buy' | 'sell' }): Promise<AlpacaOrder[]> => {
       const qs = new URLSearchParams(
         Object.entries(params || {})
           .filter(([, v]) => v !== undefined)
