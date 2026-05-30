@@ -1,3 +1,4 @@
+process.env.DATABASE_URL = 'file:./prisma/dev.db'
 process.env.ALPACA_API_KEY = 'test-key'
 process.env.ALPACA_API_SECRET = 'test-secret'
 process.env.ALPACA_BASE_URL = 'https://paper-api.alpaca.markets'

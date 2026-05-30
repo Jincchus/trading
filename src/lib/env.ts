@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const schema = z.object({
+  DATABASE_URL: z.string().default('file:./prisma/dev.db'),
   ALPACA_API_KEY: z.string().min(1),
   ALPACA_API_SECRET: z.string().min(1),
   ALPACA_BASE_URL: z.string().url().default('https://api.alpaca.markets'),
