@@ -1,0 +1,166 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
+import TopBar from '@/components/layout/TopBar'
+import ComparisonChart, { ComparisonLine, STRATEGY_COLORS } from '@/components/bot/ComparisonChart'
+import StrategyAccordion from '@/components/bot/StrategyAccordion'
+import AssetCard from '@/components/bot/AssetCard'
+import OverviewTab from '@/components/bot/OverviewTab'
+import PositionsTab from '@/components/bot/PositionsTab'
+import TradesTab from '@/components/bot/TradesTab'
+import {
+  Strategy, PortfolioPoint, Performance, Trade, Position,
+  getStrategies, getPortfolio, getPerformance, getTrades, getPositions,
+} from '@/lib/bot-api'
+import { Period, tabLabel, buildComparisonSeries } from '@/lib/bot-format'
+
+type SubTab = 'overview' | 'positions' | 'trades'
+const SUBTABS: { id: SubTab; label: string }[] = [
+  { id: 'overview', label: '개요' }, { id: 'positions', label: '포지션' }, { id: 'trades', label: '체결' },
+]
+const POLL_MS = 30_000
+
+export default function BotPage() {
+  const [strategies, setStrategies] = useState<Strategy[] | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [period, setPeriod] = useState<Period>('30d')
+  const [subTab, setSubTab] = useState<SubTab>('overview')
+  const [lines, setLines] = useState<ComparisonLine[]>([])
+  const [portfolio, setPortfolio] = useState<PortfolioPoint[]>([])
+  const [perf, setPerf] = useState<Performance | null>(null)
+  const [positions, setPositions] = useState<Position[]>([])
+  const [trades, setTrades] = useState<Trade[]>([])
+  const [error, setError] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const inFlight = useRef(false)
+
+  // selectedId를 ref로도 들고 있어 폴링 클로저가 항상 최신값 참조
+  const selectedRef = useRef<number | null>(null)
+  selectedRef.current = selectedId
+
+  const load = useCallback(async () => {
+    if (inFlight.current) return
+    inFlight.current = true
+    try {
+      const strats = await getStrategies()
+      setStrategies(strats)
+      setError(false)
+
+      // 선택 전략 결정 (없으면 첫 번째)
+      let sel = selectedRef.current
+      if (sel === null || !strats.some((s) => s.id === sel)) {
+        sel = strats.length > 0 ? strats[0].id : null
+        setSelectedId(sel)
+      }
+
+      // 비교차트: 전체 전략 portfolio 병렬
+      const portfolios = await Promise.all(
+        strats.map((s) => getPortfolio(s.id).catch(() => [] as PortfolioPoint[])),
+      )
+      const newLines: ComparisonLine[] = strats.map((s, i) => {
+        const series = buildComparisonSeries(portfolios[i], parseFloat(s.budget))
+        return {
+          id: s.id, label: tabLabel(s.name, s.id), color: STRATEGY_COLORS[i % STRATEGY_COLORS.length],
+          series, lastPct: series.length > 0 ? series[series.length - 1].value : 0,
+        }
+      })
+      setLines(newLines)
+
+      // 선택 전략 상세
+      if (sel !== null) {
+        const idx = strats.findIndex((s) => s.id === sel)
+        setPortfolio(idx >= 0 ? portfolios[idx] : [])
+        const [pf, ps, tr] = await Promise.all([
+          getPerformance(sel).catch(() => [] as Performance[]),
+          getPositions(sel).catch(() => [] as Position[]),
+          getTrades(sel).catch(() => [] as Trade[]),
+        ])
+        setPerf(pf.length > 0 ? pf[pf.length - 1] : null)
+        setPositions(ps)
+        setTrades(tr)
+      }
+    } catch {
+      setError(true)
+    } finally {
+      inFlight.current = false
+    }
+  }, [])
+
+  // 최초 로드 + 선택 전략 변경 시 재로드
+  useEffect(() => { load() }, [load, selectedId])
+
+  // 30초 폴링 (탭 비활성 시 정지)
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') load() }
+    const timer = setInterval(tick, POLL_MS)
+    return () => clearInterval(timer)
+  }, [load])
+
+  const manualRefresh = async () => {
+    setRefreshing(true)
+    await load()
+    setRefreshing(false)
+  }
+
+  const selected = strategies?.find((s) => s.id === selectedId) ?? null
+  const selectedColor = STRATEGY_COLORS[
+    Math.max(0, strategies?.findIndex((s) => s.id === selectedId) ?? 0) % STRATEGY_COLORS.length]
+
+  return (
+    <>
+      <TopBar title="봇 대시보드" action={
+        <button onClick={manualRefresh} disabled={refreshing} className="text-gray-400 disabled:opacity-50">
+          <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+        </button>
+      } />
+
+      <div className="p-4 space-y-4">
+        {error && <p className="text-red-400 text-sm">데이터를 불러올 수 없습니다.</p>}
+
+        {strategies === null ? (
+          <div className="animate-pulse h-40 bg-gray-800 rounded-xl" />
+        ) : strategies.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-8">등록된 전략이 없습니다.</p>
+        ) : (
+          <>
+            <ComparisonChart lines={lines} period={period} onPeriodChange={setPeriod} />
+
+            {/* 전략 탭 */}
+            <div className="flex border-b border-gray-800 overflow-x-auto">
+              {strategies.map((s) => (
+                <button key={s.id} onClick={() => { setSelectedId(s.id); setSubTab('overview') }}
+                  className={`px-3 py-2 text-xs whitespace-nowrap ${
+                    s.id === selectedId ? 'text-white border-b-2 border-blue-500 font-semibold' : 'text-gray-500'}`}>
+                  {tabLabel(s.name, s.id)}
+                </button>
+              ))}
+            </div>
+
+            {selected && (
+              <div className="space-y-3">
+                <StrategyAccordion strategy={selected} color={selectedColor} onChanged={load} />
+                <AssetCard history={portfolio} budget={parseFloat(selected.budget)} />
+
+                {/* 서브탭 */}
+                <div className="flex border-b border-gray-800">
+                  {SUBTABS.map((st) => (
+                    <button key={st.id} onClick={() => setSubTab(st.id)}
+                      className={`px-3 py-2 text-xs ${
+                        subTab === st.id ? 'text-white border-b-2 border-blue-500 font-semibold' : 'text-gray-500'}`}>
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
+
+                {subTab === 'overview' && <OverviewTab perf={perf} />}
+                {subTab === 'positions' && <PositionsTab positions={positions} />}
+                {subTab === 'trades' && <TradesTab trades={trades} />}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  )
+}
