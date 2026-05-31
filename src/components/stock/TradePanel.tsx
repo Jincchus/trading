@@ -33,13 +33,13 @@ export default function TradePanel({ ticker }: Props) {
     <div className="flex gap-3 pb-2">
       <button
         onClick={() => setMode('buy')}
-        className="flex-1 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm"
+        className="flex-1 py-3 rounded-xl bg-red-600 text-white font-semibold text-sm"
       >
         매수
       </button>
       <button
         onClick={() => setMode('sell')}
-        className="flex-1 py-3 rounded-xl bg-red-600 text-white font-semibold text-sm"
+        className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm"
       >
         매도
       </button>

@@ -2,10 +2,10 @@ beforeEach(() => {
   jest.resetModules()
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
-    json: () => Promise.resolve([
-      { symbol: 'NVDA', name: 'NVIDIA', changesPercentage: 3.5, price: 875.0, volume: 50000000 },
-      { symbol: 'TSLA', name: 'Tesla', changesPercentage: -1.2, price: 250.0, volume: 40000000 },
-    ]),
+    json: () => Promise.resolve({
+      NVDA: { latestTrade: { p: 875.0 }, prevDailyBar: { c: 844.9 }, dailyBar: { v: 50000000 } },
+      TSLA: { latestTrade: { p: 250.0 }, prevDailyBar: { c: 253.0 }, dailyBar: { v: 40000000 } },
+    }),
   } as Response)
 })
 

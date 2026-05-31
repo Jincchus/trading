@@ -37,7 +37,7 @@ export default function HoldingsMini() {
             <p className="text-white font-semibold text-sm">{p.ticker}</p>
             <div className="text-right">
               <p className="text-white text-sm">${p.currentValue.toFixed(2)}</p>
-              <p className={`text-xs ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-xs ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
                 {isUp ? '+' : ''}{p.unrealizedPLPct.toFixed(2)}%
               </p>
             </div>

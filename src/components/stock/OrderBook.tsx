@@ -34,7 +34,7 @@ export default function OrderBook({ ticker }: { ticker: string }) {
       <div className="flex justify-between items-start">
         <div>
           <p className="text-xs text-gray-400 mb-1">매수 Bid</p>
-          <p className="text-green-400 font-semibold text-lg">${quote.bp.toFixed(2)}</p>
+          <p className="text-red-400 font-semibold text-lg">${quote.bp.toFixed(2)}</p>
           <p className="text-xs text-gray-500">{quote.bs.toLocaleString()} 주</p>
         </div>
         <div className="text-center">
@@ -43,7 +43,7 @@ export default function OrderBook({ ticker }: { ticker: string }) {
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-400 mb-1">매도 Ask</p>
-          <p className="text-red-400 font-semibold text-lg">${quote.ap.toFixed(2)}</p>
+          <p className="text-blue-400 font-semibold text-lg">${quote.ap.toFixed(2)}</p>
           <p className="text-xs text-gray-500">{quote.as.toLocaleString()} 주</p>
         </div>
       </div>

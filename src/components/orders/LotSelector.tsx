@@ -105,7 +105,7 @@ export default function LotSelector({ ticker, onSuccess }: Props) {
                 <p className="text-xs text-gray-300">{lot.purchaseDate.slice(0, 10)}</p>
                 <p className="text-xs text-gray-400">{lot.remainingQty}주 · 취득가 ${lot.purchasePrice.toFixed(2)}</p>
               </div>
-              <p className={`text-sm font-medium ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-sm font-medium ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
                 {isUp ? '+' : ''}{lot.unrealizedPLPct.toFixed(2)}%
               </p>
             </label>
@@ -157,7 +157,7 @@ export default function LotSelector({ ticker, onSuccess }: Props) {
       <button
         onClick={sell}
         disabled={submitting || !selectedLotId || !qty}
-        className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity"
+        className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity"
       >
         {submitting ? '주문 중...' : '매도'}
       </button>

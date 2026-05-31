@@ -33,7 +33,7 @@ export default function FxPnlMini() {
     <div className="bg-gray-900 rounded-xl p-4 flex items-center justify-between">
       <div>
         <p className="text-gray-400 text-xs">환차익/손실</p>
-        <p className={`text-sm font-semibold mt-0.5 ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`text-sm font-semibold mt-0.5 ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
           {isUp ? '+' : ''}{fmt(Math.round(pnl))}
         </p>
       </div>

@@ -75,7 +75,7 @@ export default function OrderHistory() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-white text-sm">{order.symbol}</p>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                    order.side === 'buy' ? 'bg-green-950 text-green-400' : 'bg-red-950 text-red-400'
+                    order.side === 'buy' ? 'bg-red-950 text-red-400' : 'bg-blue-950 text-blue-400'
                   }`}>
                     {order.side === 'buy' ? '매수' : '매도'}
                   </span>

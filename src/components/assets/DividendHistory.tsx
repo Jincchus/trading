@@ -37,7 +37,7 @@ export default function DividendHistory() {
     <div className="bg-gray-900 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-800 flex justify-between">
         <p className="text-gray-400 text-xs uppercase tracking-wide">배당금 수령 내역</p>
-        <p className="text-green-400 text-xs font-medium">총 ${total.toFixed(2)}</p>
+        <p className="text-red-400 text-xs font-medium">총 ${total.toFixed(2)}</p>
       </div>
       {dividends.map((d) => (
         <div key={d.id} className="flex items-center justify-between px-4 py-3 border-b border-gray-800 last:border-0">
@@ -45,7 +45,7 @@ export default function DividendHistory() {
             <p className="text-white text-sm font-medium">{d.symbol}</p>
             <p className="text-xs text-gray-400">{d.date.slice(0, 10)}</p>
           </div>
-          <p className="text-green-400 text-sm font-semibold">
+          <p className="text-red-400 text-sm font-semibold">
             +${parseFloat(d.net_amount).toFixed(2)}
           </p>
         </div>

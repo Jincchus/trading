@@ -54,7 +54,7 @@ export default function FxSummary() {
         {fxPnL !== null && (
           <div className="col-span-2">
             <p className="text-xs text-gray-400 mb-0.5">환차익/손실</p>
-            <p className={`font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+            <p className={`font-semibold ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
               {isUp ? '+' : ''}{fmt(fxPnL)}
             </p>
           </div>

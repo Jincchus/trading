@@ -26,10 +26,10 @@ export default function LotRow({ lot }: { lot: LotDetail }) {
         <LotStrategyBadge lotId={lot.id} currentStrategyId={lot.strategyId} />
       </div>
       <div className="text-right">
-        <p className={`text-sm font-medium ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`text-sm font-medium ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
           {isUp ? '+' : ''}{lot.unrealizedPLPct.toFixed(2)}%
         </p>
-        <p className={`text-xs ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`text-xs ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
           {isUp ? '+' : ''}${lot.unrealizedPL.toFixed(2)}
         </p>
       </div>

@@ -39,7 +39,7 @@ export default function ActivesList() {
             </div>
             <div className="text-right">
               <p className="text-white text-sm">${a.price.toFixed(2)}</p>
-              <p className={`text-xs font-medium ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-xs font-medium ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
                 {isUp ? '+' : ''}{a.changesPercentage.toFixed(2)}%
               </p>
             </div>

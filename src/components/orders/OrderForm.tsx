@@ -117,11 +117,25 @@ export default function OrderForm({ defaultTicker = '', onSuccess }: Props) {
         <input
           type="checkbox"
           checked={extendedHours}
-          onChange={(e) => setExtendedHours(e.target.checked)}
+          onChange={(e) => {
+            setExtendedHours(e.target.checked)
+            if (e.target.checked) {
+              setOrderType('limit')
+              setInputMode('qty')
+            }
+          }}
           className="accent-blue-500"
         />
         프리/애프터마켓
       </label>
+
+      {extendedHours && (
+        <div className="bg-amber-950 border border-amber-800 rounded-lg px-3 py-2 space-y-0.5">
+          <p className="text-amber-400 text-xs font-medium">⚠️ 프리/애프터마켓 주문 제한</p>
+          <p className="text-amber-300 text-xs">• 지정가 주문만 가능 (시장가 불가)</p>
+          <p className="text-amber-300 text-xs">• 소수점 거래 불가 — 정수 주 수량만 입력</p>
+        </div>
+      )}
 
       {result && (
         <p className={`text-xs ${result.ok ? 'text-green-400' : 'text-red-400'}`}>
@@ -132,7 +146,7 @@ export default function OrderForm({ defaultTicker = '', onSuccess }: Props) {
       <button
         onClick={submit}
         disabled={submitting || !ticker.trim() || !value}
-        className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity"
+        className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity"
       >
         {submitting ? '주문 중...' : '매수'}
       </button>

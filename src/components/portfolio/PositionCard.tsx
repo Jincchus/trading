@@ -66,7 +66,7 @@ export default function PositionCard(props: Props) {
             <p className="text-white font-semibold">
               ${props.currentValue.toFixed(2)}
             </p>
-            <p className={`text-sm ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${isUp ? 'text-red-400' : 'text-blue-400'}`}>
               {isUp ? '+' : ''}{props.unrealizedPLPct.toFixed(2)}%
             </p>
           </div>
