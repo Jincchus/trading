@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { getCurrentKrwRate } from '@/lib/exchange-rate'
 import { sendPushNotification } from '@/lib/push'
 import { orderSchema } from '@/lib/order-schema'
+import { isTradingEnabled } from '@/lib/trading-settings'
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,13 +18,30 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let audit: Awaited<ReturnType<typeof prisma.orderAudit.create>> | null = null
   try {
     const raw = await req.json()
     const parsed = orderSchema.safeParse(raw)
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
+
+    if (!(await isTradingEnabled())) {
+      return NextResponse.json({ error: '자동매매가 정지된 상태입니다. 설정에서 재개하세요.' }, { status: 403 })
+    }
+
     const body = parsed.data
+
+    // Create audit record before placing order
+    audit = await prisma.orderAudit.create({
+      data: {
+        source: 'manual',
+        clientOrderId: body.clientOrderId,
+        ticker: body.ticker.toUpperCase(),
+        side: body.side,
+        request: JSON.stringify(body),
+      },
+    }).catch(() => null)
 
     const order = await alpaca.placeOrder({
       symbol: body.ticker.toUpperCase(),
@@ -35,6 +53,14 @@ export async function POST(req: NextRequest) {
       ...(body.limitPrice && { limit_price: String(body.limitPrice) }),
       ...(body.extendedHours && { extended_hours: true }),
     })
+
+    // Update audit with result
+    if (audit) {
+      await prisma.orderAudit.update({
+        where: { id: audit.id },
+        data: { alpacaOrderId: order.id, status: order.status, filledQty: order.filled_qty ?? null, filledPrice: order.filled_avg_price ?? null },
+      }).catch(() => {})
+    }
 
     if (
       body.side === 'buy' &&
@@ -117,6 +143,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ order }, { status: 201 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Order failed'
+    if (audit) {
+      await prisma.orderAudit.update({
+        where: { id: audit.id },
+        data: { error: message },
+      }).catch(() => {})
+    }
     return NextResponse.json({ error: message }, { status: 502 })
   }
 }

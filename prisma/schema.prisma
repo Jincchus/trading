@@ -111,3 +111,24 @@ model Watchlist {
   ticker  String   @id
   addedAt DateTime @default(now())
 }
+
+model TradingSettings {
+  id             Int      @id @default(1)
+  tradingEnabled Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+}
+
+model OrderAudit {
+  id            String   @id @default(cuid())
+  source        String   // 'manual' | 'strategy' | 'recurring'
+  clientOrderId String?
+  ticker        String
+  side          String
+  request       String   // JSON-serialized request body
+  alpacaOrderId String?
+  status        String?
+  filledQty     String?
+  filledPrice   String?
+  error         String?
+  createdAt     DateTime @default(now())
+}

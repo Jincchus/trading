@@ -68,6 +68,9 @@ app.prepare().then(() => {
     recurringRunning = true
     try {
       const now = new Date()
+      const { isTradingEnabled } = await import('./src/lib/trading-settings')
+      if (!(await isTradingEnabled())) return
+
       const actives = await prisma.recurringInvestment.findMany({ where: { active: true } })
       for (const ri of actives) {
         if (!shouldRun(ri.frequency, ri.lastRun, now)) continue

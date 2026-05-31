@@ -3,6 +3,10 @@ import { alpaca } from './alpaca/client'
 import { sendPushNotification } from './push'
 
 export async function checkStrategies(): Promise<void> {
+  // Respect global kill switch
+  const { isTradingEnabled } = await import('./trading-settings')
+  if (!(await isTradingEnabled())) return
+
   // Only run during market hours
   const clock = await alpaca.getClock().catch(() => null)
   if (!clock?.is_open) return

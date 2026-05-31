@@ -5,6 +5,7 @@ import SetupGuide from '@/components/settings/SetupGuide'
 import ThemeToggle from '@/components/settings/ThemeToggle'
 import PushToggle from '@/components/alerts/PushToggle'
 import LogoutButton from '@/components/settings/LogoutButton'
+import KillSwitch from '@/components/settings/KillSwitch'
 
 export default function SettingsPage() {
   return (
@@ -52,6 +53,9 @@ export default function SettingsPage() {
 
         {/* 셋업 가이드 */}
         <SetupGuide />
+
+        {/* 자동매매 제어 */}
+        <KillSwitch />
 
         {/* 로그아웃 */}
         <LogoutButton />
