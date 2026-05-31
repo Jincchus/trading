@@ -13,6 +13,7 @@ const schema = z.object({
   VAPID_PRIVATE_KEY: z.string().min(1),
   VAPID_EMAIL: z.string().default('admin@example.com'),
   PORT: z.string().default('3000'),
+  APP_PASSWORD: z.string().min(1),
 })
 
 export type Env = z.infer<typeof schema>

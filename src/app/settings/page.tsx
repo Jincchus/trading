@@ -4,6 +4,7 @@ import StrategyManager from '@/components/settings/StrategyManager'
 import SetupGuide from '@/components/settings/SetupGuide'
 import ThemeToggle from '@/components/settings/ThemeToggle'
 import PushToggle from '@/components/alerts/PushToggle'
+import LogoutButton from '@/components/settings/LogoutButton'
 
 export default function SettingsPage() {
   return (
@@ -51,6 +52,9 @@ export default function SettingsPage() {
 
         {/* 셋업 가이드 */}
         <SetupGuide />
+
+        {/* 로그아웃 */}
+        <LogoutButton />
 
         {/* 앱 정보 */}
         <div className="bg-gray-900 rounded-xl p-4 space-y-1">

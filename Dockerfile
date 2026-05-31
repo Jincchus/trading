@@ -26,7 +26,8 @@ ENV ALPACA_API_KEY=build_placeholder \
     VAPID_PRIVATE_KEY=UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTWKSkFU \
     VAPID_EMAIL=admin@example.com \
     DATABASE_URL=file:/app/prisma/trading.db \
-    PORT=3000
+    PORT=3000 \
+    APP_PASSWORD=build_placeholder
 
 # 봇 대시보드가 호출하는 봇 API URL (NEXT_PUBLIC_*는 빌드 시 클라이언트 번들에 인라인됨).
 # 기본값은 LAN IP. 다른 환경은 docker compose build-arg로 override.
