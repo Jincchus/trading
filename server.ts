@@ -61,7 +61,11 @@ app.prepare().then(() => {
 
   wsManager.connect()
 
+  // Recurring investment scheduler — guarded against overlapping runs
+  let recurringRunning = false
   setInterval(async () => {
+    if (recurringRunning) return
+    recurringRunning = true
     try {
       const now = new Date()
       const actives = await prisma.recurringInvestment.findMany({ where: { active: true } })
@@ -84,19 +88,28 @@ app.prepare().then(() => {
           console.error(`[Recurring] Failed for ${ri.ticker}:`, e)
         }
       }
-    } catch {}
+    } catch {} finally { recurringRunning = false }
   }, 60 * 1000)
 
+  // Strategy monitor — guarded against overlapping runs
+  let strategyRunning = false
   setInterval(async () => {
+    if (strategyRunning) return
+    strategyRunning = true
     try {
       await checkStrategies()
     } catch (e) {
       console.error('[Strategy Monitor] Error:', e)
-    }
+    } finally { strategyRunning = false }
   }, 30 * 1000)
 
+  // Alert monitor — guarded against overlapping runs
+  let alertRunning = false
   setInterval(async () => {
+    if (alertRunning) return
+    alertRunning = true
     try { await checkAlerts() } catch (e) { console.error('[Alert Monitor]', e) }
+    finally { alertRunning = false }
   }, 60 * 1000)
 
   server.listen(port, () => {

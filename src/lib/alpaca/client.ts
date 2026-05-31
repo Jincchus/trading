@@ -161,6 +161,8 @@ export function buildAlpacaClient(config: ClientConfig) {
       ).toString()
       return req(`/v2/account/activities${qs ? `?${qs}` : ''}`)
     },
+    getClock: (): Promise<{ is_open: boolean; next_open: string; next_close: string }> =>
+      req('/v2/clock'),
   }
 }
 
