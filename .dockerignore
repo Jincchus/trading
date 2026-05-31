@@ -1,0 +1,10 @@
+node_modules
+.next
+.env
+prisma/*.db
+prisma/*.db-journal
+data/
+apps/mobile
+docs
+__tests__
+*.test.ts

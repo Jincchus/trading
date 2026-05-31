@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "주식 트레이딩",
+    "slug": "stock-trading-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/APPICON.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#030712",
+    "splash": {
+      "image": "./assets/APPICON.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#030712"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/APPICON.png",
+        "backgroundColor": "#030712"
+      },
+      "package": "com.personal.stocktrading",
+      "versionCode": 1
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.personal.stocktrading"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}

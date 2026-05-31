@@ -1,0 +1,14 @@
+services:
+  stock-trading:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: file:/app/prisma/trading.db
+      NODE_ENV: production
+    volumes:
+      - ./prisma/trading.db:/app/prisma/trading.db
+      - ./data:/app/data
