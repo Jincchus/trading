@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BarChart2, Search, ShoppingCart, Wallet, Bell, Settings } from 'lucide-react'
+import { Home, BarChart2, Bot, Search, ShoppingCart, Wallet, Bell, Settings } from 'lucide-react'
 
 const NAV = [
   { href: '/', label: '홈', icon: Home },
   { href: '/portfolio', label: '포트폴리오', icon: BarChart2 },
+  { href: '/bot', label: '봇', icon: Bot },
   { href: '/explore', label: '탐색', icon: Search },
   { href: '/orders', label: '주문', icon: ShoppingCart },
   { href: '/assets', label: '자산', icon: Wallet },
