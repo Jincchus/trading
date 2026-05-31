@@ -1,11 +1,10 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Lock } from 'lucide-react'
 
 function LoginForm() {
-  const router = useRouter()
   const params = useSearchParams()
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -24,7 +23,7 @@ function LoginForm() {
       if (res.ok) {
         const raw = params.get('from') ?? '/'
         const to = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
-        router.replace(to)
+        window.location.replace(to)  // 풀 리로드 — 미들웨어가 새 세션 쿠키를 바로 인식
       } else {
         const data = await res.json() as { error?: string }
         setError(data.error ?? '로그인 실패')
