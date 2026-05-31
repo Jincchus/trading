@@ -47,3 +47,6 @@ prisma/*.db-journal
 *.db-journal
 
 /src/generated/prisma
+
+# brainstorm visual companion artifacts
+.superpowers/
