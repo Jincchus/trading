@@ -3,6 +3,7 @@ import { alpaca } from '@/lib/alpaca/client'
 import { prisma } from '@/lib/db'
 import { getCurrentKrwRate } from '@/lib/exchange-rate'
 import { sendPushNotification } from '@/lib/push'
+import { orderSchema } from '@/lib/order-schema'
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,16 +18,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
-      ticker: string
-      side: 'buy' | 'sell'
-      type: 'market' | 'limit'
-      qty?: number
-      notional?: number
-      limitPrice?: number
-      extendedHours?: boolean
-      lotId?: string
+    const raw = await req.json()
+    const parsed = orderSchema.safeParse(raw)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
+    const body = parsed.data
 
     const order = await alpaca.placeOrder({
       symbol: body.ticker.toUpperCase(),
@@ -83,7 +80,7 @@ export async function POST(req: NextRequest) {
 
         const gainKrw = (salePrice - lot.purchasePrice) * filledQty * saleRate
 
-        await Promise.all([
+        await prisma.$transaction([
           prisma.lot.update({
             where: { id: body.lotId },
             data: {

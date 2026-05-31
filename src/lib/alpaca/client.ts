@@ -128,6 +128,7 @@ export function buildAlpacaClient(config: ClientConfig) {
       limit_price?: string
       stop_price?: string
       extended_hours?: boolean
+      client_order_id?: string
     }): Promise<AlpacaOrder> =>
       req('/v2/orders', { method: 'POST', body: JSON.stringify(order) }),
     cancelOrder: (orderId: string): Promise<void> =>
