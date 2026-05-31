@@ -15,6 +15,9 @@ const schema = z.object({
   PORT: z.string().default('3000'),
   ALPACA_TRADING_MODE: z.enum(['paper', 'live']).default('paper'),
   APP_PASSWORD: z.string().min(1),
+  SESSION_SECRET: z.string().min(32),
+  BOT_API_TOKEN: z.string().min(16),
+  BOT_API_URL: z.string().url().default('http://localhost:8000'),
 })
 
 export type Env = z.infer<typeof schema>

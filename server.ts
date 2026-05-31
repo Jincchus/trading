@@ -8,6 +8,7 @@ import { env } from './src/lib/env'
 import { prisma } from './src/lib/db'
 import { alpaca } from './src/lib/alpaca/client'
 import { shouldRun } from './src/lib/recurring'
+import { verifySession } from './src/lib/session'
 import { checkStrategies } from './src/lib/strategy-monitor'
 import { checkAlerts } from './src/lib/alert-monitor'
 
@@ -42,6 +43,15 @@ app.prepare().then(() => {
 
   server.on('upgrade', (req, socket, head) => {
     if (req.url === '/ws') {
+      // Verify session cookie before upgrading
+      const cookieHeader = req.headers.cookie ?? ''
+      const sessionMatch = cookieHeader.match(/(?:^|;\s*)session=([^;]+)/)
+      const sessionToken = sessionMatch ? decodeURIComponent(sessionMatch[1]) : undefined
+      if (!verifySession(sessionToken)) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
+        socket.destroy()
+        return
+      }
       wss.handleUpgrade(req, socket, head, (ws) => {
         wss.emit('connection', ws, req)
       })

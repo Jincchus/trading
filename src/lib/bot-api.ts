@@ -1,4 +1,4 @@
-export const BOT_API = process.env.NEXT_PUBLIC_BOT_API_URL ?? 'http://localhost:8000'
+export const BOT_API = '/api/bot'
 
 export interface Strategy {
   id: number

@@ -22,7 +22,9 @@ function LoginForm() {
         body: JSON.stringify({ password }),
       })
       if (res.ok) {
-        router.replace(params.get('from') ?? '/')
+        const raw = params.get('from') ?? '/'
+        const to = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
+        router.replace(to)
       } else {
         const data = await res.json() as { error?: string }
         setError(data.error ?? '로그인 실패')
