@@ -1,10 +1,10 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 # 의존성 설치
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # 소스 복사
 COPY . .
@@ -30,7 +30,7 @@ ENV ALPACA_API_KEY=build_placeholder \
 RUN npm run build
 
 # 데이터 디렉토리 생성
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data /app/prisma
 
 EXPOSE 3000
 

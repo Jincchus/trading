@@ -48,7 +48,7 @@ export async function GET() {
 
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer
 
-  return new NextResponse(buf, {
+  return new NextResponse(new Uint8Array(buf), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="tax-${new Date().getFullYear()}.xlsx"`,
