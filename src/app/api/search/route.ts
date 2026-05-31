@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 
-interface FmpSearchResult {
+interface AlpacaAsset {
   symbol: string
   name: string
-  currency: string
-  exchangeShortName: string
+  exchange: string
+  status: string
+  tradable: boolean
 }
-
-const STOCK_EXCHANGES = new Set(['NASDAQ', 'NYSE', 'AMEX', 'NYSE ARCA', 'OTC'])
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q')
@@ -17,18 +16,23 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const url = `https://financialmodelingprep.com/api/v3/search?query=${encodeURIComponent(q)}&limit=15&apikey=${env.FMP_API_KEY}`
-    const res = await fetch(url)
+    const url = `${env.ALPACA_BASE_URL}/v2/assets?search=${encodeURIComponent(q)}&status=active&asset_class=us_equity`
+    const res = await fetch(url, {
+      headers: {
+        'APCA-API-KEY-ID': env.ALPACA_API_KEY,
+        'APCA-API-SECRET-KEY': env.ALPACA_API_SECRET,
+      },
+    })
     if (!res.ok) return NextResponse.json({ results: [] })
 
-    const raw = await res.json() as FmpSearchResult[]
-    const results = raw
-      .filter((r) => STOCK_EXCHANGES.has(r.exchangeShortName))
+    const assets = await res.json() as AlpacaAsset[]
+    const results = assets
+      .filter((a) => a.tradable && a.status === 'active')
       .slice(0, 10)
-      .map((r) => ({
-        symbol: r.symbol,
-        name: r.name,
-        exchange: r.exchangeShortName,
+      .map((a) => ({
+        symbol: a.symbol,
+        name: a.name,
+        exchange: a.exchange,
         type: 'stock',
       }))
 

@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'
@@ -26,7 +27,7 @@ app.prepare().then(() => {
     handle(req, res, parse(req.url!, true))
   })
 
-  const wss = new WebSocketServer({ server, path: '/ws' })
+  const wss = new WebSocketServer({ noServer: true })
   wss.on('connection', (ws) => {
     wsManager.registerBrowserClient(ws)
     ws.on('message', (data: Buffer) => {
@@ -37,6 +38,15 @@ app.prepare().then(() => {
         }
       } catch {}
     })
+  })
+
+  server.on('upgrade', (req, socket, head) => {
+    if (req.url === '/ws') {
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req)
+      })
+    }
+    // Other paths (/_next/webpack-hmr etc.) handled by Next.js internally
   })
 
   wsManager.connect()
