@@ -26,6 +26,7 @@ ENV ALPACA_API_KEY=build_placeholder \
     VAPID_PRIVATE_KEY=UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTWKSkFU \
     VAPID_EMAIL=admin@example.com \
     DATABASE_URL=file:/app/prisma/trading.db \
+    ALPACA_TRADING_MODE=paper \
     PORT=3000 \
     APP_PASSWORD=build_placeholder
 

@@ -164,5 +164,5 @@ export function buildAlpacaClient(config: ClientConfig) {
   }
 }
 
-import { env } from '../env'
-export const alpaca = buildAlpacaClient(env)
+import { env, ALPACA_BASE_URL } from '../env'
+export const alpaca = buildAlpacaClient({ ...env, ALPACA_BASE_URL })

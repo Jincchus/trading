@@ -91,6 +91,10 @@ app.prepare().then(() => {
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`)
+    console.log(`> TRADING MODE: ${env.ALPACA_TRADING_MODE.toUpperCase()}`)
+    if (env.ALPACA_TRADING_MODE === 'live') {
+      console.warn('⚠️  LIVE TRADING ENABLED — real money at risk')
+    }
   })
 
   server.on('error', (err: NodeJS.ErrnoException) => {

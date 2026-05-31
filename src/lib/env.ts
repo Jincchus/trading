@@ -4,7 +4,7 @@ const schema = z.object({
   DATABASE_URL: z.string().default('file:./prisma/dev.db'),
   ALPACA_API_KEY: z.string().min(1),
   ALPACA_API_SECRET: z.string().min(1),
-  ALPACA_BASE_URL: z.string().url().default('https://api.alpaca.markets'),
+  ALPACA_BASE_URL: z.string().url().optional(),
   ALPACA_WS_URL: z.string().url().default('wss://stream.data.alpaca.markets/v2/iex'),
   ALPACA_DATA_URL: z.string().url().default('https://data.alpaca.markets'),
   FMP_API_KEY: z.string().min(1),
@@ -13,6 +13,7 @@ const schema = z.object({
   VAPID_PRIVATE_KEY: z.string().min(1),
   VAPID_EMAIL: z.string().default('admin@example.com'),
   PORT: z.string().default('3000'),
+  ALPACA_TRADING_MODE: z.enum(['paper', 'live']).default('paper'),
   APP_PASSWORD: z.string().min(1),
 })
 
@@ -27,3 +28,11 @@ export function parseEnv(input: NodeJS.ProcessEnv): Env {
 }
 
 export const env = parseEnv(process.env)
+
+// Mode-based URL — explicit env var takes precedence, otherwise derive from mode
+export const ALPACA_BASE_URL = env.ALPACA_BASE_URL
+  ?? (env.ALPACA_TRADING_MODE === 'live'
+    ? 'https://api.alpaca.markets'
+    : 'https://paper-api.alpaca.markets')
+
+export const IS_LIVE = env.ALPACA_TRADING_MODE === 'live'
