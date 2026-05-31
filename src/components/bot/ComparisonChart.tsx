@@ -80,11 +80,13 @@ export default function ComparisonChart({
           ))}
         </div>
       </div>
-      {lines.length === 0 ? (
-        <div className="h-40 flex items-center justify-center text-gray-500 text-sm">표시할 데이터가 없습니다</div>
-      ) : (
+      <div className="relative min-h-40">
+        {/* 컨테이너는 항상 마운트 — 차트 생성 effect가 ref를 찾을 수 있어야 함 */}
         <div ref={containerRef} className="w-full" />
-      )}
+        {lines.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">표시할 데이터가 없습니다</div>
+        )}
+      </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
         {lines.map((l) => (
           <span key={l.id} className="text-[10px]" style={{ color: l.color }}>

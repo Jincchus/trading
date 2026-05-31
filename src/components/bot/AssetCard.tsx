@@ -51,10 +51,12 @@ export default function AssetCard({ history, budget }: { history: PortfolioPoint
       <div className={`text-xs ${pnlColorClass(pnl)}`}>
         {pnl >= 0 ? '+' : ''}{formatUsd(pnl)} ({formatPct(pnlFraction)})
       </div>
-      <div className="mt-2 rounded-md overflow-hidden">
-        {history.length === 0
-          ? <div className="h-14 flex items-center justify-center text-gray-600 text-[11px]">자산 기록 없음</div>
-          : <div ref={containerRef} className="w-full" />}
+      <div className="mt-2 rounded-md overflow-hidden relative min-h-14">
+        {/* 컨테이너는 항상 마운트 — 차트 생성 effect가 ref를 찾을 수 있어야 함 */}
+        <div ref={containerRef} className="w-full" />
+        {history.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-[11px]">자산 기록 없음</div>
+        )}
       </div>
     </div>
   )

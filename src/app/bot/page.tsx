@@ -39,7 +39,8 @@ export default function BotPage() {
   const selectedRef = useRef<number | null>(null)
   selectedRef.current = selectedId
 
-  const load = useCallback(async () => {
+  // 전략 목록 + 비교차트 (폴링/수동/제어후). 중첩 폴링만 inFlight로 방지.
+  const loadAll = useCallback(async () => {
     if (inFlight.current) return
     inFlight.current = true
     try {
@@ -47,39 +48,22 @@ export default function BotPage() {
       setStrategies(strats)
       setError(false)
 
-      // 선택 전략 결정 (없으면 첫 번째)
-      let sel = selectedRef.current
-      if (sel === null || !strats.some((s) => s.id === sel)) {
-        sel = strats.length > 0 ? strats[0].id : null
-        setSelectedId(sel)
+      // 선택 전략 결정 (없거나 사라졌으면 첫 번째)
+      if (selectedRef.current === null || !strats.some((s) => s.id === selectedRef.current)) {
+        setSelectedId(strats.length > 0 ? strats[0].id : null)
       }
 
       // 비교차트: 전체 전략 portfolio 병렬
       const portfolios = await Promise.all(
         strats.map((s) => getPortfolio(s.id).catch(() => [] as PortfolioPoint[])),
       )
-      const newLines: ComparisonLine[] = strats.map((s, i) => {
+      setLines(strats.map((s, i) => {
         const series = buildComparisonSeries(portfolios[i], parseFloat(s.budget))
         return {
           id: s.id, label: tabLabel(s.name, s.id), color: STRATEGY_COLORS[i % STRATEGY_COLORS.length],
           series, lastPct: series.length > 0 ? series[series.length - 1].value : 0,
         }
-      })
-      setLines(newLines)
-
-      // 선택 전략 상세
-      if (sel !== null) {
-        const idx = strats.findIndex((s) => s.id === sel)
-        setPortfolio(idx >= 0 ? portfolios[idx] : [])
-        const [pf, ps, tr] = await Promise.all([
-          getPerformance(sel).catch(() => [] as Performance[]),
-          getPositions(sel).catch(() => [] as Position[]),
-          getTrades(sel).catch(() => [] as Trade[]),
-        ])
-        setPerf(pf.length > 0 ? pf[pf.length - 1] : null)
-        setPositions(ps)
-        setTrades(tr)
-      }
+      }))
     } catch {
       setError(true)
     } finally {
@@ -87,19 +71,47 @@ export default function BotPage() {
     }
   }, [])
 
-  // 최초 로드 + 선택 전략 변경 시 재로드
-  useEffect(() => { load() }, [load, selectedId])
+  // 선택 전략 상세. 탭 전환마다 항상 실행돼야 하므로 inFlight 가드 없음.
+  const loadSelected = useCallback(async (id: number | null) => {
+    if (id === null) {
+      setPortfolio([]); setPerf(null); setPositions([]); setTrades([])
+      return
+    }
+    const [pfHist, pf, ps, tr] = await Promise.all([
+      getPortfolio(id).catch(() => [] as PortfolioPoint[]),
+      getPerformance(id).catch(() => [] as Performance[]),
+      getPositions(id).catch(() => [] as Position[]),
+      getTrades(id).catch(() => [] as Trade[]),
+    ])
+    setPortfolio(pfHist)
+    setPerf(pf.length > 0 ? pf[pf.length - 1] : null)
+    setPositions(ps)
+    setTrades(tr)
+  }, [])
+
+  const refreshBoth = useCallback(() => {
+    loadAll()
+    loadSelected(selectedRef.current)
+  }, [loadAll, loadSelected])
+
+  // 최초 로드(전체) + 선택 전략 변경 시 상세 재로드
+  useEffect(() => { loadAll() }, [loadAll])
+  useEffect(() => { loadSelected(selectedId) }, [selectedId, loadSelected])
 
   // 30초 폴링 (탭 비활성 시 정지)
   useEffect(() => {
-    const tick = () => { if (document.visibilityState === 'visible') load() }
+    const tick = () => {
+      if (document.visibilityState !== 'visible') return
+      loadAll()
+      loadSelected(selectedRef.current)
+    }
     const timer = setInterval(tick, POLL_MS)
     return () => clearInterval(timer)
-  }, [load])
+  }, [loadAll, loadSelected])
 
   const manualRefresh = async () => {
     setRefreshing(true)
-    await load()
+    await Promise.all([loadAll(), loadSelected(selectedRef.current)])
     setRefreshing(false)
   }
 
@@ -139,7 +151,7 @@ export default function BotPage() {
 
             {selected && (
               <div className="space-y-3">
-                <StrategyAccordion strategy={selected} color={selectedColor} onChanged={load} />
+                <StrategyAccordion strategy={selected} color={selectedColor} onChanged={refreshBoth} />
                 <AssetCard history={portfolio} budget={parseFloat(selected.budget)} />
 
                 {/* 서브탭 */}
