@@ -21,6 +21,14 @@ jest.mock('@/lib/db', () => ({
     fxRecord: {
       findFirst: jest.fn().mockResolvedValue({ id: 'fx-1', exchangeRate: 1300 }),
     },
+    orderAudit: {
+      create: jest.fn().mockResolvedValue({ id: 'audit-1' }),
+      update: jest.fn().mockResolvedValue({}),
+    },
+    tradingSettings: {
+      upsert: jest.fn().mockResolvedValue({ id: 1, tradingEnabled: true }),
+    },
+    $transaction: jest.fn().mockResolvedValue([]),
   },
 }))
 
@@ -93,6 +101,19 @@ test('POST updates Lot soldQuantity when sell fills', async () => {
     expect.objectContaining({
       data: expect.objectContaining({ ticker: 'AAPL', quantity: 3, lotId: 'lot-1' }),
     })
+  )
+})
+
+test('POST forwards clientOrderId to Alpaca as client_order_id', async () => {
+  const { alpaca } = jest.requireMock('@/lib/alpaca/client')
+  alpaca.placeOrder.mockResolvedValue({
+    id: 'order-9', symbol: 'AAPL', side: 'buy', status: 'pending_new',
+    qty: '1', filled_qty: '0', filled_avg_price: null, filled_at: null,
+    type: 'market', extended_hours: false,
+  })
+  await POST(makePostReq({ ticker: 'AAPL', side: 'buy', type: 'market', qty: 1, clientOrderId: 'idem-123' }))
+  expect(alpaca.placeOrder).toHaveBeenCalledWith(
+    expect.objectContaining({ client_order_id: 'idem-123' })
   )
 })
 

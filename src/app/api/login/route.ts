@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
-import { signSession } from '@/lib/session'
+import { signSession, SESSION_MAX_AGE_MS } from '@/lib/session'
+import { createRateLimiter, clientIp } from '@/lib/rate-limit'
 
 const SESSION_COOKIE = 'session'
-const MAX_AGE = 60 * 60 * 24 * 30
+const MAX_AGE = SESSION_MAX_AGE_MS / 1000
 
-// In-memory rate limiter: max 5 attempts per IP per minute
-const attempts = new Map<string, { count: number; resetAt: number }>()
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = attempts.get(ip)
-  if (!entry || now > entry.resetAt) {
-    attempts.set(ip, { count: 1, resetAt: now + 60_000 })
-    return false
-  }
-  if (entry.count >= 5) return true
-  entry.count++
-  return false
-}
+// Max 5 attempts per IP per minute
+const limiter = createRateLimiter(5, 60_000)
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
-  if (isRateLimited(ip)) {
+  const ip = clientIp(req.headers.get('x-forwarded-for'), req.headers.get('x-real-ip'))
+  if (limiter.check(ip)) {
     return NextResponse.json({ error: '너무 많은 시도. 잠시 후 다시 시도하세요.' }, { status: 429 })
   }
 

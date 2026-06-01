@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       side: body.side,
       type: body.type,
       time_in_force: body.type === 'market' ? 'day' : 'gtc',
+      client_order_id: body.clientOrderId,
       ...(body.qty && { qty: String(body.qty) }),
       ...(body.notional && { notional: String(body.notional) }),
       ...(body.limitPrice && { limit_price: String(body.limitPrice) }),

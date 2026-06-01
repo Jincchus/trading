@@ -5,9 +5,7 @@ import next from 'next'
 import { WebSocketServer } from 'ws'
 import { buildWsManager } from './src/lib/alpaca/ws-server'
 import { env } from './src/lib/env'
-import { prisma } from './src/lib/db'
-import { alpaca } from './src/lib/alpaca/client'
-import { shouldRun } from './src/lib/recurring'
+import { runRecurringInvestments } from './src/lib/recurring-runner'
 import { verifySession } from './src/lib/session'
 import { checkStrategies } from './src/lib/strategy-monitor'
 import { checkAlerts } from './src/lib/alert-monitor'
@@ -67,31 +65,12 @@ app.prepare().then(() => {
     if (recurringRunning) return
     recurringRunning = true
     try {
-      const now = new Date()
-      const { isTradingEnabled } = await import('./src/lib/trading-settings')
-      if (!(await isTradingEnabled())) return
-
-      const actives = await prisma.recurringInvestment.findMany({ where: { active: true } })
-      for (const ri of actives) {
-        if (!shouldRun(ri.frequency, ri.lastRun, now)) continue
-        try {
-          await alpaca.placeOrder({
-            symbol: ri.ticker,
-            notional: String(ri.amount),
-            side: 'buy',
-            type: 'market',
-            time_in_force: 'day',
-          })
-          await prisma.recurringInvestment.update({
-            where: { id: ri.id },
-            data: { lastRun: now },
-          })
-          console.log(`[Recurring] $${ri.amount} → ${ri.ticker}`)
-        } catch (e) {
-          console.error(`[Recurring] Failed for ${ri.ticker}:`, e)
-        }
-      }
-    } catch {} finally { recurringRunning = false }
+      await runRecurringInvestments(new Date())
+    } catch (e) {
+      console.error('[Recurring] Error:', e)
+    } finally {
+      recurringRunning = false
+    }
   }, 60 * 1000)
 
   // Strategy monitor — guarded against overlapping runs
