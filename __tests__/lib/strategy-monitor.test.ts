@@ -4,16 +4,26 @@ jest.mock('@/lib/db', () => ({
   prisma: {
     lot: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
       update: jest.fn().mockResolvedValue({}),
+    },
+    tradingSettings: {
+      upsert: jest.fn().mockResolvedValue({ id: 1, tradingEnabled: true }),
     },
   },
 }))
 
 jest.mock('@/lib/alpaca/client', () => ({
   alpaca: {
+    getClock: jest.fn(),
     getPositions: jest.fn(),
+    getOrders: jest.fn(),
     placeOrder: jest.fn(),
   },
+}))
+
+jest.mock('@/lib/push', () => ({
+  sendPushNotification: jest.fn().mockResolvedValue(undefined),
 }))
 
 beforeEach(() => {
@@ -23,6 +33,14 @@ beforeEach(() => {
   prisma.lot.update.mockClear()
   alpaca.placeOrder.mockReset()
   alpaca.getPositions.mockReset()
+  alpaca.getClock.mockResolvedValue({ is_open: true, next_open: '', next_close: '' })
+  alpaca.getOrders.mockResolvedValue([])
+  // freshLot re-read mirrors whatever the most recent findMany returned.
+  prisma.lot.findUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+    const result = prisma.lot.findMany.mock.results[0]
+    const lots = result ? await result.value : []
+    return lots.find((l: { id: string }) => l.id === where.id) ?? null
+  })
 })
 
 test('no-op when no lots have strategies', async () => {
