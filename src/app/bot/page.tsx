@@ -9,9 +9,11 @@ import AssetCard from '@/components/bot/AssetCard'
 import OverviewTab from '@/components/bot/OverviewTab'
 import PositionsTab from '@/components/bot/PositionsTab'
 import TradesTab from '@/components/bot/TradesTab'
+import WatchlistCard from '@/components/bot/WatchlistCard'
 import {
   Strategy, PortfolioPoint, Performance, Trade, Position,
   getStrategies, getPortfolio, getPerformance, getTrades, getPositions,
+  getWatchlist, liquidateAll,
 } from '@/lib/bot-api'
 import { Period, tabLabel, buildComparisonSeries } from '@/lib/bot-format'
 
@@ -32,6 +34,7 @@ export default function BotPage() {
   const [positions, setPositions] = useState<Position[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
   const [error, setError] = useState(false)
+  const [watchlist, setWatchlist] = useState<string[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const inFlight = useRef(false)
 
@@ -47,6 +50,7 @@ export default function BotPage() {
       const strats = await getStrategies()
       setStrategies(strats)
       setError(false)
+      getWatchlist().then((w) => setWatchlist(w.symbols)).catch(() => {})
 
       // 선택 전략 결정 (없거나 사라졌으면 첫 번째)
       if (selectedRef.current === null || !strats.some((s) => s.id === selectedRef.current)) {
@@ -115,6 +119,12 @@ export default function BotPage() {
     setRefreshing(false)
   }
 
+  const panic = async () => {
+    if (!window.confirm('모든 봇을 멈추고 전 종목을 청산합니다. 계속할까요?')) return
+    if (!window.confirm('정말 전체 청산할까요? 되돌릴 수 없습니다.')) return
+    try { await liquidateAll(); refreshBoth() } catch { setError(true) }
+  }
+
   const selected = strategies?.find((s) => s.id === selectedId) ?? null
   const selectedColor = STRATEGY_COLORS[
     Math.max(0, strategies?.findIndex((s) => s.id === selectedId) ?? 0) % STRATEGY_COLORS.length]
@@ -136,6 +146,12 @@ export default function BotPage() {
           <p className="text-gray-500 text-sm text-center py-8">등록된 전략이 없습니다.</p>
         ) : (
           <>
+            <button onClick={panic}
+              className="w-full text-xs py-2 rounded-xl bg-red-950 text-red-400 font-semibold">
+              ⚠ 전체 비상 청산 (모든 봇 정지 + 청산)
+            </button>
+            <WatchlistCard symbols={watchlist} onChanged={refreshBoth} />
+
             <ComparisonChart lines={lines} period={period} onPeriodChange={setPeriod} />
 
             {/* 전략 탭 */}
@@ -151,7 +167,7 @@ export default function BotPage() {
 
             {selected && (
               <div className="space-y-3">
-                <StrategyAccordion strategy={selected} color={selectedColor} onChanged={refreshBoth} />
+                <StrategyAccordion strategy={selected} color={selectedColor} symbols={watchlist} onChanged={refreshBoth} />
                 <AssetCard history={portfolio} budget={parseFloat(selected.budget)} />
 
                 {/* 서브탭 */}
@@ -166,7 +182,7 @@ export default function BotPage() {
                 </div>
 
                 {subTab === 'overview' && <OverviewTab perf={perf} />}
-                {subTab === 'positions' && <PositionsTab positions={positions} />}
+                {subTab === 'positions' && <PositionsTab positions={positions} strategyId={selected.id} onChanged={refreshBoth} />}
                 {subTab === 'trades' && <TradesTab trades={trades} />}
               </div>
             )}
