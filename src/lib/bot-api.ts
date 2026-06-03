@@ -7,6 +7,7 @@ export interface Strategy {
   budget: string
   status: 'running' | 'stopped' | 'failed'
   run_interval: string
+  position_size: string
   created_at: string
 }
 export interface PortfolioPoint {
@@ -35,6 +36,34 @@ async function post(path: string): Promise<void> {
   if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`)
 }
 
+async function readError(res: Response, method: string, path: string): Promise<Error> {
+  try {
+    const data = await res.json()
+    if (data && typeof data.detail === 'string') return new Error(data.detail)
+  } catch { /* non-JSON body */ }
+  return new Error(`${method} ${path} failed: ${res.status}`)
+}
+
+async function put<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BOT_API}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw await readError(res, 'PUT', path)
+  return res.json() as Promise<T>
+}
+
+async function patch<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BOT_API}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw await readError(res, 'PATCH', path)
+  return res.json() as Promise<T>
+}
+
 export const getStrategies = () => get<Strategy[]>('/strategies')
 export const getPortfolio = (id: number) => get<PortfolioPoint[]>(`/strategies/${id}/portfolio`)
 export const getPerformance = (id: number) => get<Performance[]>(`/strategies/${id}/performance`)
@@ -42,3 +71,14 @@ export const getTrades = (id: number) => get<Trade[]>(`/strategies/${id}/trades`
 export const getPositions = (id: number) => get<Position[]>(`/strategies/${id}/positions`)
 export const startStrategy = (id: number) => post(`/strategies/${id}/start`)
 export const stopStrategy = (id: number) => post(`/strategies/${id}/stop`)
+
+export interface Watchlist { symbols: string[] }
+
+export const getWatchlist = () => get<Watchlist>('/watchlist')
+export const updateWatchlist = (symbols: string[]) => put<Watchlist>('/watchlist', { symbols })
+export const patchStrategy = (id: number, position_size: number) =>
+  patch<Strategy>(`/strategies/${id}`, { position_size })
+export const closePosition = (id: number, symbol: string) =>
+  post(`/strategies/${id}/positions/${symbol}/close`)
+export const liquidateStrategy = (id: number) => post(`/strategies/${id}/liquidate`)
+export const liquidateAll = () => post('/liquidate-all')
