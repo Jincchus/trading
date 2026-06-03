@@ -9,12 +9,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
 export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxy(req, await params, 'POST')
 }
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params, 'PUT')
+}
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params, 'PATCH')
+}
 
 async function proxy(req: NextRequest, params: { path: string[] }, method: string) {
   const path = '/' + params.path.join('/')
   const url = `${BOT_API}${path}${req.nextUrl.search}`
   try {
-    const body = method === 'POST' ? await req.text() : undefined
+    const body = method === 'GET' ? undefined : await req.text()
     const res = await fetch(url, {
       method,
       headers: {
