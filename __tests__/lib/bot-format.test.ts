@@ -48,3 +48,18 @@ test('filterByPeriod: 기간 필터', () => {
   expect(filterByPeriod(series, '30d', now).length).toBe(2)
   expect(filterByPeriod(series, 'all', now).length).toBe(3)
 })
+
+import { normalizeSymbol, addSymbol } from '@/lib/bot-format'
+
+test('normalizeSymbol: 공백 제거 + 대문자', () => {
+  expect(normalizeSymbol('  tsla ')).toBe('TSLA')
+})
+test('addSymbol: 정규화해서 추가', () => {
+  expect(addSymbol(['AAPL'], 'tsla')).toEqual(['AAPL', 'TSLA'])
+})
+test('addSymbol: 빈값 무시', () => {
+  expect(addSymbol(['AAPL'], '   ')).toEqual(['AAPL'])
+})
+test('addSymbol: 중복(대소문자 무시) 무시', () => {
+  expect(addSymbol(['AAPL'], 'aapl')).toEqual(['AAPL'])
+})

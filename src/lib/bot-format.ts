@@ -53,3 +53,13 @@ export function filterByPeriod(series: SeriesPoint[], period: Period, nowSec: nu
   const cutoff = nowSec - days * 86400
   return series.filter((p) => p.time >= cutoff)
 }
+
+export function normalizeSymbol(raw: string): string {
+  return raw.trim().toUpperCase()
+}
+
+export function addSymbol(list: string[], raw: string): string[] {
+  const sym = normalizeSymbol(raw)
+  if (!sym || list.includes(sym)) return list
+  return [...list, sym]
+}
